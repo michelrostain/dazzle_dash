@@ -44,11 +44,11 @@ Les données concernent les catégories suivantes :
 * Schooling : Le nombre moyen d'années de scolarisation de la population.    
 
 **2) Suppression des données non pertinentes**     
-Dans la mesure ou toutes les colonnes ont moins de 22% de données manquantes, nous allons considérer chaque colonnes afin de voir si les données sont pertinentes. Nous gèrerons aussi les case vides et les données aberrantes.     
-Dans un premier temps nous calculons le ratio par pays : (valeur de la ligne) / (Médiane des valeurs de ce pays).     
-Ensuite nous répartissons les ratios de chaque pays dans un histogramme et un rapport écris (en terminal) et faisons notre choix du ratio idéal et l'apploquons dans le code du fichier graph.py.
+Dans la mesure ou toutes les colonnes ont moins de 22% de données manquantes, nous allons considérer chaque colonnes afin de voir si les données sont pertinentes et exploitables en l'état. Nous gèrerons aussi les case vides et les données aberrantes.     
+Dans un premier temps nous calculons le ratio par pays : moyenne des valeurs  de {[valeur de la ligne] / [Médiane des valeurs de ce pays]}.     
+Ensuite nous regardons la distribution des ratios de chaque pays dans un tableau récapitulatif et dans un histogramme) et faisons notre choix du ratio idéal et l'appliquons dans le code du fichier graph.py.
 
-Là où le ratio ne marche pas : 
+<u>Là où le ratio ne marche pas :</u> 
 Valeurs trop petites ou arrondies : under-five deaths, pour 111 pays.
 Variations naturelles énormes : Measles, où une épidémie multiplie le nombre de cas par 100.
 Médiane non représentative : séries en tendance ou corrompues, comme India pour Hepatitis B ou Montenegro pour Alcohol. Cela arrive aussi sur des taux.     

@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from src.data import RAW_CSV, CLEAN_CSV
+
 
 def corriger_seuil(df, colonne, seuil):
     """Remplace les valeurs < seuil x médiane du pays.
@@ -62,9 +64,10 @@ def nettoyer(df):
     return df
 
 # Ce bloc ne s'exécute QUE si on lance le fichier directement,
-# jamais quand le notebook fait "from nettoyage_par_colonne import nettoyer"
+# jamais quand le notebook fait "from src.cleaning import nettoyer"
+# Lancer depuis la racine du projet : python -m src.cleaning
 if __name__ == "__main__":
-    brut = pd.read_csv("/home/michel/Documents/LaPlateforme/Projets/annee2/Data_Wiz_Dash/dazzle_dash/data/life_expectancy_data.csv")
+    brut = pd.read_csv(RAW_CSV)
     propre = nettoyer(brut)
-    propre.to_csv("data/life_expectancy_clean.csv", index=False)
+    propre.to_csv(CLEAN_CSV, index=False)
     print("Fichier écrit.")

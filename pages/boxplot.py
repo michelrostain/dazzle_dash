@@ -1,11 +1,13 @@
-from dash import Dash, html, dcc, Input, Output   # Input/Output servent au callback
+from dash import register_page, html, dcc, callback, Input, Output   # Input/Output servent au callback
 import dash_ag_grid as dag
-import pandas as pd
 import plotly.express as px
 
+from src.data import load_data
+
+register_page(__name__, path="/boxplot", name="Boxplot", order=2)
+
 # --- Chargement des données ---
-df = pd.read_csv("dazzle_dash/data/life_expectancy_data.csv")
-df.columns = df.columns.str.strip()   # enlève les espaces parasites autour des noms (casse conservée)
+df = load_data()
 
 # --- Graphique : top 5 mortalité adulte ---
 moyenne = df.groupby('Country', as_index=False)['Adult Mortality'].mean()
@@ -41,10 +43,8 @@ def construire_boxplot(colonne, pays_choisis):
     return px.box(d, x="Country", y=colonne, points=points,
                   hover_data=["Year"], title=titre)
 
-# --- Application ---
-app = Dash()
-
-app.layout = [
+# --- Mise en page ---
+layout = html.Div([
     # html.Div(children='My first app with Data'),
     # dag.AgGrid(
     #     rowData=df.astype(object).where(df.notna(), None).to_dict('records'),
@@ -61,16 +61,13 @@ app.layout = [
                  value=[], multi=True,
                  placeholder="Tous les pays (sélectionne-en pour filtrer)"),
     dcc.Graph(id="boxplot"),
-]
+])
 
 # Le callback met à jour le boxplot quand l'un des deux filtres change
-@app.callback(
+@callback(
     Output("boxplot", "figure"),
     Input("choix-colonne", "value"),
     Input("choix-pays", "value"),
 )
 def maj_boxplot(colonne, pays):
     return construire_boxplot(colonne, pays)
-
-if __name__ == '__main__':
-    app.run(debug=True)

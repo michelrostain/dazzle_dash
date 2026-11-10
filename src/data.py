@@ -17,3 +17,12 @@ def load_data(clean=False):
     df = pd.read_csv(CLEAN_CSV if clean else RAW_CSV)
     df.columns = df.columns.str.strip()
     return df
+
+def load_data_brut(clean=False):
+    """Charge le CSV brut (par défaut) ou nettoyé, noms de colonnes sans espaces parasites."""
+    df = pd.read_csv(RAW_CSV)
+    df.columns = df.columns.str.strip()
+    return df
+
+
+

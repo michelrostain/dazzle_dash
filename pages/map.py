@@ -1,53 +1,76 @@
 from dash import register_page, html, dcc, callback, Input, Output
+import dash_bootstrap_components as dbc
 import plotly.express as px
+import plotly.graph_objects as go
 
 from src.data import load_data
 
 register_page(__name__, path="/map", name="Carte", order=1)
 
-df = load_data()
-df = df.sort_values("Year")  # so the animation slider goes 2000 -> 2015
+df = load_data(clean=True).sort_values("Year")  # slider goes 2000 -> 2015
+df_2015 = df[df["Year"] == 2015]
 
-COLOR_RANGE = (df["Life expectancy"].min(), df["Life expectancy"].max())  # same scale every year
+# --- Carte du monde ---
+carte = px.choropleth(
+    df,
+    locations="Country",
+    locationmode="country names",
+    color="Life expectancy",
+    hover_name="Country",
+    animation_frame="Year",
+    color_continuous_scale="Viridis",
+    range_color=(df["Life expectancy"].min(), df["Life expectancy"].max()),
+    projection="natural earth",
+)
+carte.update_layout(height=600, margin=dict(l=0, r=0, t=0, b=0))
 
 
-def make_map(data, zoom=False):
-    fig = px.choropleth(
-        data,
-        locations="Country",
-        locationmode="country names",
-        color="Life expectancy",
-        hover_name="Country",
-        animation_frame="Year",
-        color_continuous_scale="Viridis",
-        range_color=COLOR_RANGE,
-        projection="natural earth",
-    )
-    fig.update_layout(height=600, margin=dict(l=0, r=0, t=30, b=0))
-    if zoom:
-        fig.update_geos(fitbounds="locations")  # zoom in on the selected countries
+# --- 10 meilleurs / 10 pires en 2015 (graph du notebook) ---
+def barres(valeurs, couleur, titre):
+    fig = go.Figure(go.Bar(x=valeurs.values, y=valeurs.index, orientation="h", marker_color=couleur))
+    fig.update_layout(title=titre, height=250, margin=dict(l=0, r=0, t=30, b=0),
+                      template="plotly_white", yaxis=dict(autorange="reversed", dtick=1))
+    return fig
+
+
+esperance_2015 = df_2015.groupby("Country")["Life expectancy"].mean()
+top_10 = barres(esperance_2015.nlargest(10), "steelblue", "10 meilleurs (2015)")
+bottom_10 = barres(esperance_2015.nsmallest(10), "indianred", "10 pires (2015)")
+moyenne_2015 = df_2015["Life expectancy"].mean()
+def courbe(pays):
+    fig = go.Figure()
+    status = df.groupby(["Year", "Status"], as_index=False)["Life expectancy"].mean()
+    for nom, label, couleur in [("Developed", "Pays développés", "seagreen"),
+                                ("Developing", "Pays en développement", "darkorange")]:
+        d = status[status["Status"] == nom]
+        fig.add_trace(go.Scatter(x=d["Year"], y=d["Life expectancy"], mode="lines",
+                                 name=label, line=dict(color=couleur, width=3)))
+    d = df[df["Country"] == pays]
+    fig.add_trace(go.Scatter(x=d["Year"], y=d["Life expectancy"], mode="lines+markers",
+                             name=pays, line=dict(color="royalblue", width=4)))
+    fig.update_layout(title="L'évolution de l'espérance de vie (2000–2015)",
+                      xaxis_title="Année", yaxis_title="Espérance de vie (années)",
+                      template="plotly_white", hovermode="x unified", xaxis=dict(dtick=1))
     return fig
 
 
 layout = html.Div([
-    html.H1("Map Page"),
-    dcc.Dropdown(
-        id="country-search",
-        options=sorted(df["Country"].unique()),
-        multi=True,            # pick several countries
-        searchable=True,       # type to search
-        placeholder="Search countries...",
-    ),
-    dcc.Graph(id="world-map", figure=make_map(df)),
+    html.H1("Espérance de vie dans le monde"),
+    dbc.Row([
+        dbc.Col(dcc.Graph(figure=carte), md=8),
+        dbc.Col([
+            dcc.Graph(figure=top_10),
+            dcc.Graph(figure=bottom_10),
+            html.H5("Espérance de vie mondiale 2015"),
+            html.H2(f"{moyenne_2015:.1f} ans"),
+        ], md=4),
+    ]),
+    dcc.Dropdown(id="pays-courbe", options=sorted(df["Country"].unique()),
+                 value="France", clearable=False),
+    dcc.Graph(id="courbe"),
 ])
 
 
-@callback(
-    Output("world-map", "figure"),
-    Input("country-search", "value"),
-)
-def update_map(selected_countries):
-    if not selected_countries:  # nothing selected -> whole world
-        return make_map(df)
-    filtered = df[df["Country"].isin(selected_countries)]
-    return make_map(filtered, zoom=True)
+@callback(Output("courbe", "figure"), Input("pays-courbe", "value"))
+def maj_courbe(pays):
+    return courbe(pays)

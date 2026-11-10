@@ -2,12 +2,12 @@ from dash import register_page, html, dcc, callback, Input, Output   # Input/Out
 import dash_ag_grid as dag
 import plotly.express as px
 
-from src.data import load_data
+from src.data import load_data, load_data_brut
 
-register_page(__name__, path="/boxplot", name="Boxplot", order=2)
+register_page(__name__, path="/boxplot", name="Boxplot", order=3)
 
 # --- Chargement des données ---
-df = load_data()
+df = load_data_brut()
 
 # --- Graphique : top 5 mortalité adulte ---
 moyenne = df.groupby('Country', as_index=False)['Adult Mortality'].mean()

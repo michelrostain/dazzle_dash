@@ -28,7 +28,7 @@ carte.update_layout(height=600, margin=dict(l=0, r=0, t=0, b=0))
 # --- 10 meilleurs / 10 pires en 2015 (graph du notebook) ---
 def barres(valeurs, couleur, titre):
     fig = go.Figure(go.Bar(x=valeurs.values, y=valeurs.index, orientation="h", marker_color=couleur))
-    fig.update_layout(title=titre, height=250, margin=dict(l=0, r=0, t=30, b=0),
+    fig.update_layout(title=titre, height=300, margin=dict(l=0, r=0, t=30, b=0),
                       template="plotly_white", yaxis=dict(autorange="reversed", dtick=1))
     return fig
 
@@ -61,10 +61,12 @@ layout = html.Div([
         dbc.Col([
             dcc.Graph(figure=top_10),
             dcc.Graph(figure=bottom_10),
-            html.H5("Espérance de vie mondiale 2015"),
-            html.H2(f"{moyenne_2015:.1f} ans"),
         ], md=4),
     ]),
+    html.Div([
+        html.H5("Espérance de vie mondiale 2015"),
+        html.H2(f"{moyenne_2015:.1f} ans"),
+    ], className="text-center my-4"),
     dcc.Dropdown(id="pays-courbe", options=sorted(df["Country"].unique()),
                  value="France", clearable=False),
     dcc.Graph(id="courbe"),

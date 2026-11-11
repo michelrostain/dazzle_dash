@@ -56,10 +56,8 @@ Il n’y a pas de règle « nombres de cas : on ne touche à rien ». La règle 
 
 Médiane : un seuil unique par colonne, valable tant que la médiane du pays est représentative ; les pays où elle ne l’est pas sont documentés comme limites connues
 
-<u>2.1) Colonne Adult Mortality</u>   
 
-
-### **<u>2) Veille technologique</u>**     
+### **<u>3) Veille technologique</u>**     
 2.1) <u>Dash by plotly</u>     
 Dash est un framework Python spécialisé dans la création d'applications web et de dashboards.
 

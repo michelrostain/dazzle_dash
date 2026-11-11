@@ -55,6 +55,8 @@ def courbe(pays, y):
     fig.update_layout(title=f"L'évolution de {y} (2000–2015)",
                       xaxis_title="Année", yaxis_title=y,
                       template="plotly_white", hovermode="x unified", xaxis=dict(dtick=1))
+    if y in ["Total expenditure", "Diphtheria"]:
+        fig.update_yaxes(range=[0, 100], ticksuffix="%")
     return fig
 
 

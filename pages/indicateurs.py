@@ -27,6 +27,8 @@ def nuage(data, colonne, titre):
         fig.add_scatter(x=x, y=a * x + b, mode="lines", line=dict(color="red"), showlegend=False)
         titre += f"   R = {r:.2f}"
     fig.update_layout(title=titre, template="plotly_white", height=350)
+    if colonne in ["Total expenditure", "Diphtheria"]:
+        fig.update_xaxes(range=[0, 100], ticksuffix="%")
     return fig
 
 

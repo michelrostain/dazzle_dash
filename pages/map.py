@@ -40,7 +40,7 @@ moyenne_2015 = df_2015["Life expectancy"].mean()
 colonnes_y = [c for c in df.select_dtypes("number").columns if c != "Year"]
 
 
-def courbe(pays, y):
+def courbe(pays, y, plage):
     fig = go.Figure()
     status = df.groupby(["Year", "Status"], as_index=False)[y].mean()
     for nom, label, couleur in [("Developed", "Pays développés", "seagreen"),
@@ -56,7 +56,7 @@ def courbe(pays, y):
                       xaxis_title="Année", yaxis_title=y,
                       template="plotly_white", hovermode="x unified", xaxis=dict(dtick=1))
     if y in ["Total expenditure", "Diphtheria"]:
-        fig.update_yaxes(range=[0, 100], ticksuffix="%")
+        fig.update_yaxes(range=plage, ticksuffix="%")
     return fig
 
 
@@ -79,10 +79,13 @@ layout = html.Div([
         dbc.Col(dcc.Dropdown(id="y-courbe", options=colonnes_y,
                              value="Life expectancy", clearable=False), md=6),
     ]),
+    dcc.RangeSlider(id="plage-pourcent", min=0, max=100, step=1, value=[0, 100],
+                    marks={i: f"{i}%" for i in range(0, 101, 10)}),
     dcc.Graph(id="courbe"),
 ])
 
 
-@callback(Output("courbe", "figure"), Input("pays-courbe", "value"), Input("y-courbe", "value"))
-def maj_courbe(pays, y):
-    return courbe(pays, y)
+@callback(Output("courbe", "figure"), Input("pays-courbe", "value"), Input("y-courbe", "value"),
+          Input("plage-pourcent", "value"))
+def maj_courbe(pays, y, plage):
+    return courbe(pays, y, plage)

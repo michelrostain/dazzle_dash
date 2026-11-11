@@ -17,7 +17,7 @@ INDICATEURS = {
 }
 
 
-def nuage(data, colonne, titre):
+def nuage(data, colonne, titre, plage):
     d = data[[colonne, "Life expectancy"]].dropna()
     fig = px.scatter(d, x=colonne, y="Life expectancy", opacity=0.5)
     if len(d) > 1:
@@ -28,7 +28,7 @@ def nuage(data, colonne, titre):
         titre += f"   R = {r:.2f}"
     fig.update_layout(title=titre, template="plotly_white", height=350)
     if colonne in ["Total expenditure", "Diphtheria"]:
-        fig.update_xaxes(range=[0, 100], ticksuffix="%")
+        fig.update_xaxes(range=plage, ticksuffix="%")
     return fig
 
 
@@ -41,16 +41,19 @@ layout = html.Div([
                                       {"label": "Pays en développement", "value": "Developing"}],
                              placeholder="Tous"), md=6),
     ]),
+    dcc.RangeSlider(id="plage-indic", min=0, max=100, step=1, value=[0, 100],
+                    marks={i: f"{i}%" for i in range(0, 101, 10)}),
     dbc.Row([dbc.Col(dcc.Graph(id=f"indic-{i}"), md=6) for i in range(4)]),
 ])
 
 
 @callback([Output(f"indic-{i}", "figure") for i in range(4)],
-          Input("pays-indic", "value"), Input("status-indic", "value"))
-def maj_indicateurs(pays, status):
+          Input("pays-indic", "value"), Input("status-indic", "value"),
+          Input("plage-indic", "value"))
+def maj_indicateurs(pays, status, plage):
     data = df
     if pays:
         data = data[data["Country"] == pays]
     if status:
         data = data[data["Status"] == status]
-    return [nuage(data, col, titre) for col, titre in INDICATEURS.items()]
+    return [nuage(data, col, titre, plage) for col, titre in INDICATEURS.items()]

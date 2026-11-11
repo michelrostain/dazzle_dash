@@ -31,13 +31,24 @@ def nuage(data, colonne, titre):
 
 
 layout = html.Div([
-    dcc.Dropdown(id="pays-indic", options=sorted(df["Country"].unique()),
-                 placeholder="Tous les pays"),
+    dbc.Row([
+        dbc.Col(dcc.Dropdown(id="pays-indic", options=sorted(df["Country"].unique()),
+                             placeholder="Tous les pays"), md=6),
+        dbc.Col(dcc.Dropdown(id="status-indic",
+                             options=[{"label": "Pays développés", "value": "Developed"},
+                                      {"label": "Pays en développement", "value": "Developing"}],
+                             placeholder="Tous"), md=6),
+    ]),
     dbc.Row([dbc.Col(dcc.Graph(id=f"indic-{i}"), md=6) for i in range(4)]),
 ])
 
 
-@callback([Output(f"indic-{i}", "figure") for i in range(4)], Input("pays-indic", "value"))
-def maj_indicateurs(pays):
-    data = df[df["Country"] == pays] if pays else df
+@callback([Output(f"indic-{i}", "figure") for i in range(4)],
+          Input("pays-indic", "value"), Input("status-indic", "value"))
+def maj_indicateurs(pays, status):
+    data = df
+    if pays:
+        data = data[data["Country"] == pays]
+    if status:
+        data = data[data["Status"] == status]
     return [nuage(data, col, titre) for col, titre in INDICATEURS.items()]

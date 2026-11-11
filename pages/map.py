@@ -37,19 +37,23 @@ esperance_2015 = df_2015.groupby("Country")["Life expectancy"].mean()
 top_10 = barres(esperance_2015.nlargest(10), "steelblue", "10 meilleurs (2015)")
 bottom_10 = barres(esperance_2015.nsmallest(10), "indianred", "10 pires (2015)")
 moyenne_2015 = df_2015["Life expectancy"].mean()
-def courbe(pays):
+colonnes_y = [c for c in df.select_dtypes("number").columns if c != "Year"]
+
+
+def courbe(pays, y):
     fig = go.Figure()
-    status = df.groupby(["Year", "Status"], as_index=False)["Life expectancy"].mean()
+    status = df.groupby(["Year", "Status"], as_index=False)[y].mean()
     for nom, label, couleur in [("Developed", "Pays développés", "seagreen"),
                                 ("Developing", "Pays en développement", "darkorange")]:
         d = status[status["Status"] == nom]
-        fig.add_trace(go.Scatter(x=d["Year"], y=d["Life expectancy"], mode="lines",
+        fig.add_trace(go.Scatter(x=d["Year"], y=d[y], mode="lines",
                                  name=label, line=dict(color=couleur, width=3)))
-    d = df[df["Country"] == pays]
-    fig.add_trace(go.Scatter(x=d["Year"], y=d["Life expectancy"], mode="lines+markers",
-                             name=pays, line=dict(color="royalblue", width=4)))
-    fig.update_layout(title="L'évolution de l'espérance de vie (2000–2015)",
-                      xaxis_title="Année", yaxis_title="Espérance de vie (années)",
+    if pays:
+        d = df[df["Country"] == pays]
+        fig.add_trace(go.Scatter(x=d["Year"], y=d[y], mode="lines+markers",
+                                 name=pays, line=dict(color="royalblue", width=4)))
+    fig.update_layout(title=f"L'évolution de {y} (2000–2015)",
+                      xaxis_title="Année", yaxis_title=y,
                       template="plotly_white", hovermode="x unified", xaxis=dict(dtick=1))
     return fig
 
@@ -67,12 +71,16 @@ layout = html.Div([
         html.H5("Espérance de vie mondiale 2015"),
         html.H2(f"{moyenne_2015:.1f} ans"),
     ], className="text-center my-4"),
-    dcc.Dropdown(id="pays-courbe", options=sorted(df["Country"].unique()),
-                 value="France", clearable=False),
+    dbc.Row([
+        dbc.Col(dcc.Dropdown(id="pays-courbe", options=sorted(df["Country"].unique()),
+                             value="France", placeholder="Aucun pays"), md=6),
+        dbc.Col(dcc.Dropdown(id="y-courbe", options=colonnes_y,
+                             value="Life expectancy", clearable=False), md=6),
+    ]),
     dcc.Graph(id="courbe"),
 ])
 
 
-@callback(Output("courbe", "figure"), Input("pays-courbe", "value"))
-def maj_courbe(pays):
-    return courbe(pays)
+@callback(Output("courbe", "figure"), Input("pays-courbe", "value"), Input("y-courbe", "value"))
+def maj_courbe(pays, y):
+    return courbe(pays, y)
